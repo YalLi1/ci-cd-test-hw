@@ -7,79 +7,50 @@ on:
     branches: [ "main" ]
 
 jobs:
-  quality-check:
+  # 1. BLACK - отдельный job, не блокирует остальные
+  black-check:
     runs-on: ubuntu-latest
-    
     steps:
     - uses: actions/checkout@v4
-    
-    - name: Set up Python
-      uses: actions/setup-python@v5
+    - uses: actions/setup-python@v5
       with:
         python-version: "3.13"
-    
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-    
-    - name: Smart black check (ignore import-only changes)
-      run: |
-        echo "=== SMART BLACK CHECK ==="
-        echo "Пропускаем ошибки, если изменения ТОЛЬКО в импортах"
-        echo ""
-        
-        # Создаем временную копию
-        mkdir -p /tmp/check
-        cp -r . /tmp/check/
-        cd /tmp/check
-        
-        # Применяем isort к копии
-        isort . --profile black 2>/dev/null
-        
-        # Теперь проверяем black
-        if black --check . 2>/dev/null; then
-          echo "✅ Код совместим с isort+black"
-          exit 0
-        else
-          # Смотрим ЧТО именно хочет изменить black
-          echo "❌ Есть проблемы с форматированием:"
-          black --check . 2>&1 | grep "would reformat" | sed 's/.* //' | while read file; do
-            echo "  - $file"
-            
-            # Показываем ТОЛЬКО изменения не в импортах
-            black --diff "$file" 2>/dev/null | grep -v "^---\|^+++\|^@@" | \
-              grep -v "^import\|^from\|^#" | head -5 | while read line; do
-              if [ -n "$line" ]; then
-                echo "    Изменение: $line"
-                exit 1  # Если нашли изменение не в импорте
-              fi
-            done
-          done
-          
-          # Если мы дошли сюда - изменения только в импортах
-          echo ""
-          echo "⚠️  Изменения только в импортах (можно игнорировать)"
-          exit 0  # Не падаем!
-        fi
-       
-      
-    # 2. isort - СТРОГАЯ проверка
-    - name: Check imports with isort
-      run: |
-        echo "=== ISORT CHECK (строгая проверка) ==="
-        isort --check-only .
-    
-    # 3. Flake8 - СТРОГАЯ проверка
-    - name: Lint with flake8
+    - run: pip install black
+    - name: Check formatting
+      run: black --diff .
+  
+  # 2. ISORT - отдельный job, не зависит от black
+  isort-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+    - run: pip install isort
+    - name: Check imports
+      run: isort --diff.
+  
+  # 3. FLAKE8 - отдельный job
+  flake8-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+    - run: pip install flake8
+    - name: Lint code
       run: flake8 .
-    
-    # 4. Mypy - СТРОГАЯ проверка
-    - name: Check types with mypy
+  
+  # 4. MYPY - отдельный job
+  mypy-check:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-python@v5
+      with:
+        python-version: "3.13"
+    - run: pip install mypy
+    - name: Check types
       run: mypy --ignore-missing-imports .
-    
-    # 5. Показываем diff для информации (опционально)
-    - name: Show black diff (info only)
-      if: always()
-      run: |
-        echo "=== BLACK DIFF (для информации) ==="
-        black --diff . 2>&1 | head -100 || true
