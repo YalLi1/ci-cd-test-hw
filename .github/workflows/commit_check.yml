@@ -29,7 +29,7 @@ jobs:
         python-version: "3.13"
     - run: pip install isort
     - name: Check imports
-      run: isort --diff.
+      run: isort --diff .
   
   # 3. FLAKE8 - отдельный job
   flake8-check:
