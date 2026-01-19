@@ -1,12 +1,13 @@
-from fastapi import FastAPI, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, desc
-from sqlalchemy.orm import selectinload
-from typing import List, Dict, Any
-
-from database import get_db, Recipe, Ingredient, create_tables
-from schemas import RecipeCreate, RecipeListResponse, RecipeDetailResponse
 from contextlib import asynccontextmanager
+from typing import Any, Dict, List
+
+from fastapi import Depends, FastAPI, HTTPException, status
+from sqlalchemy import desc, select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from database import Ingredient, Recipe, create_tables, get_db
+from schemas import RecipeCreate, RecipeDetailResponse, RecipeListResponse
 
 
 # Перед запуском приложения выполняется создание таблиц (замена event_start)
@@ -70,7 +71,8 @@ async def read_root() -> Dict[str, Any]:
     "/recipes",
     response_model=List[RecipeListResponse],
     summary="Получить список всех рецептов",
-    description="Получает список всех рецептов, отсортированный по популярности и времени приготовления.",
+    description="Получает список всех рецептов, "
+    "отсортированный по популярности и времени приготовления.",
 )
 async def get_all_recipes(
     skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)
@@ -157,7 +159,9 @@ async def get_recipe_by_id(recipe_id: int, db: AsyncSession = Depends(get_db)):
     summary="Создать новый рецепт",
     description="Создает новый рецепт с ингредиентами.",
 )
-async def create_recipe(recipe_data: RecipeCreate, db: AsyncSession = Depends(get_db)):
+async def create_recipe(
+    recipe_data: RecipeCreate, db: AsyncSession = Depends(get_db)
+):
     """
     Создание нового рецепта.
 
@@ -184,7 +188,9 @@ async def create_recipe(recipe_data: RecipeCreate, db: AsyncSession = Depends(ge
     # Добавляем ингредиенты
     for ingredient in recipe_data.ingredients:
         new_ingredient = Ingredient(
-            name=ingredient.name, quantity=ingredient.quantity, recipe_id=new_recipe.id
+            name=ingredient.name,
+            quantity=ingredient.quantity,
+            recipe_id=new_recipe.id,
         )
         db.add(new_ingredient)
 
