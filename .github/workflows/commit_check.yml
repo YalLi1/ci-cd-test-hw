@@ -1,10 +1,13 @@
 name: Python Code Quality
 
 on:
+  # Запускается при пуше в ЛЮБУЮ ветку
   push:
     branches: [ "**" ]
+  
+  # Запускается при создании/обновлении PR в ЛЮБУЮ ветку
   pull_request:
-    branches: [ "main" ]
+    branches: [ "**" ]
 
 jobs:
   # 1. BLACK - отдельный job, не блокирует остальные
