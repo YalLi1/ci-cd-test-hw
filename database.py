@@ -8,6 +8,7 @@ from sqlalchemy.ext.asyncio import (
 )
 from sqlalchemy.orm import DeclarativeBase, relationship
 
+
 # Создаем базовый класс для моделей
 class Base(DeclarativeBase):
     """Base class for all models"""
@@ -92,4 +93,3 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             raise
         finally:
             await session.close()
-
