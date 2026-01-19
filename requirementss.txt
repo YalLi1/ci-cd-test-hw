@@ -1,0 +1,10 @@
+﻿aiosqlite==0.22.0
+fastapi==0.124.2
+pydantic==2.12.5
+SQLAlchemy==2.0.45
+uvicorn==0.38.0
+
+black==26.1.0
+mypy==1.19.0
+isort==7.0.0
+flake8==7.3.0
