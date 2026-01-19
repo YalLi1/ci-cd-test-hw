@@ -25,16 +25,16 @@ jobs:
         pip install pytest pytest-asyncio httpx  # для тестов если будут
         
     - name: Check formatting with black
-      run: black --check .
+      run: black --diff .
       
     - name: Check imports with isort
-      run: isort --check-only .
+      run: isort --diff .
       
     - name: Lint with flake8
       run: flake8 .
       
     - name: Check types with mypy
-      run: mypy --ignore-missing-imports .
+      run: mypy .
       
     - name: Run tests (if any)
       run: |
