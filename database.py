@@ -1,13 +1,14 @@
-from sqlalchemy import Column, Integer, String, Text, ForeignKey
-from sqlalchemy.ext.asyncio import (AsyncSession,
-                                    create_async_engine, async_sessionmaker)
-from sqlalchemy.orm import relationship, DeclarativeBase
+from sqlalchemy import Column, ForeignKey, Integer, String, Text
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.orm import DeclarativeBase, relationship
+
 from typing import AsyncGenerator
 
 
 # Создаем базовый класс для моделей
 class Base(DeclarativeBase):
     """Base class for all models"""
+
     pass
 
 
@@ -15,6 +16,7 @@ class Recipe(Base):
     """
     Модель рецепта в базе данных.
     """
+
     __tablename__ = "recipes"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -25,13 +27,15 @@ class Recipe(Base):
 
     # Связь один-ко-многим с ингредиентами
     ingredients = relationship(
-        "Ingredient", back_populates="recipe", cascade="all, delete-orphan")
+        "Ingredient", back_populates="recipe", cascade="all, delete-orphan"
+    )
 
 
 class Ingredient(Base):
     """
     Модель ингредиента в базе данных.
     """
+
     __tablename__ = "ingredients"
 
     id = Column(Integer, primary_key=True, index=True)
@@ -50,14 +54,12 @@ DATABASE_URL = "sqlite+aiosqlite:///./cookbook.db"
 engine = create_async_engine(
     DATABASE_URL,
     echo=True,  # Показывать SQL запросы в консоли (можно отключить)
-    future=True
+    future=True,
 )
 
 # Создаем асинхронную фабрику сессий
 AsyncSessionLocal = async_sessionmaker(
-    engine,
-    class_=AsyncSession,
-    expire_on_commit=False
+    engine, class_=AsyncSession, expire_on_commit=False
 )
 
 
@@ -65,6 +67,7 @@ async def create_tables():
     """
     Асинхронное создание таблиц в базе данных.
     """
+
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -76,6 +79,7 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
     Yields:
         AsyncSession: Асинхронная сессия SQLAlchemy
     """
+
     async with AsyncSessionLocal() as session:
         try:
             yield session
