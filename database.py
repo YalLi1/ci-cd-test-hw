@@ -1,8 +1,9 @@
-from sqlalchemy import Column, ForeignKey, Integer, String, Text
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
-from sqlalchemy.orm import DeclarativeBase, relationship
-
 from typing import AsyncGenerator
+
+from sqlalchemy import Column, ForeignKey, Integer, String, Text
+from sqlalchemy.ext.asyncio import (AsyncSession, async_sessionmaker,
+                                    create_async_engine)
+from sqlalchemy.orm import DeclarativeBase, relationship
 
 
 # Создаем базовый класс для моделей
@@ -89,3 +90,4 @@ async def get_db() -> AsyncGenerator[AsyncSession, None]:
             raise
         finally:
             await session.close()
+
