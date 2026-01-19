@@ -1,93 +1,45 @@
-name: Enhanced Python Checks
+name: Python Code Quality
 
-on: [push, pull_request]
+on:
+  push:
+    branches: [ "**" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
-  check:
+  quality-check:
     runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v4
     
-    - name: Setup Python
+    - name: Set up Python 3.13
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: "3.13"
     
-    - name: Install tools
-      run: pip install black isort flake8 mypy
-    
-    # BLACK - ПОНЯТНЫЙ ВЫВОД
-    - name: Black Check (Readable)
+    - name: Install dependencies from requirements.txt
       run: |
-        echo "=== BLACK FORMATTING ISSUES ==="
-        echo ""
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pytest pytest-asyncio httpx  # для тестов если будут
         
-        # Проверяем каждый файл отдельно для понятного вывода
-        for file in $(find . -name "*.py" -not -path "./venv/*" -not -path "./.git/*"); do
-          if ! black --check --quiet "$file" 2>/dev/null; then
-            echo "📄 File: $file"
-            echo "🔧 Run: black '$file'"
-            echo ""
-          fi
-        done
-        
-        # Общая проверка
-        echo "=== SUMMARY ==="
-        if black --check . > /dev/null 2>&1; then
-          echo "✅ All files are properly formatted"
+    - name: Check formatting with black
+      run: black --check .
+      
+    - name: Check imports with isort
+      run: isort --check-only .
+      
+    - name: Lint with flake8
+      run: flake8 .
+      
+    - name: Check types with mypy
+      run: mypy --ignore-missing-imports .
+      
+    - name: Run tests (if any)
+      run: |
+        if [ -f "pytest.ini" ] || [ -d "tests" ]; then
+          python -m pytest -v
         else
-          echo "❌ Some files need formatting"
-          echo "Files to fix:"
-          black --check . 2>&1 | grep "would reformat" | sed 's/.* //'
+          echo "No tests configured"
         fi
-    
-    # ISORT - ПОНЯТНЫЙ ВЫВОД
-    - name: Isort Check (Readable)
-      run: |
-        echo "=== ISORT IMPORT ISSUES ==="
-        echo ""
-        
-        # Создаем временный файл для читаемого diff
-        for file in $(find . -name "*.py" -not -path "./venv/*" -not -path "./.git/*"); do
-          if ! isort --check-only --quiet "$file" 2>/dev/null; then
-            echo "📄 File: $file"
-            echo "Current imports:"
-            grep -n "^import\|^from" "$file" || echo "  (no imports found)"
-            echo "🔧 Run: isort '$file'"
-            echo ""
-          fi
-        done
-        
-        echo "=== SUMMARY ==="
-        if isort --check-only . > /dev/null 2>&1; then
-          echo "✅ All imports are sorted"
-        else
-          echo "❌ Some files have unsorted imports"
-          isort --check-only . 2>&1 | grep "ERROR" | awk '{print "  - " $2}'
-        fi
-    
-    # FLAKE8 - С ГРУППИРОВКОЙ
-    - name: Flake8 Check
-      run: |
-        echo "=== FLAKE8 ISSUES ==="
-        echo ""
-        
-        # Группируем ошибки по файлам
-        flake8 . | while read line; do
-          file=$(echo "$line" | cut -d: -f1)
-          issue=$(echo "$line" | cut -d: -f2-)
-          echo "📄 $file"
-          echo "   $issue"
-          echo ""
-        done || true
-        
-        echo "=== SUMMARY ==="
-        count=$(flake8 --count . | tail -1)
-        echo "Total issues: $count"
-    
-    # MYPY - ПРОСТОЙ ВЫВОД
-    - name: Mypy Check
-      run: |
-        echo "=== MYPY TYPE ISSUES ==="
-        mypy --ignore-missing-imports --no-error-summary .
