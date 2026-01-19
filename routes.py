@@ -31,7 +31,7 @@ app = FastAPI(
     title="Кулинарная книга API",
     description="API для управления рецептами",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
 )
 
 
@@ -44,27 +44,24 @@ async def read_root() -> Dict[str, Any]:
     return {
         "message": "Добро пожаловать в Кулинарную книгу!",
         "description": "API для управления вашими рецептами",
-        "documentation": {
-            "swagger": "/docs",
-            "redoc": "/redoc"
-        },
+        "documentation": {"swagger": "/docs", "redoc": "/redoc"},
         "endpoints": [
             {
                 "method": "GET",
                 "path": "/recipes",
-                "description": "Получить список всех рецептов"
+                "description": "Получить список всех рецептов",
             },
             {
                 "method": "GET",
                 "path": "/recipes/{id}",
-                "description": "Получить детальную информацию о рецепте"
+                "description": "Получить детальную информацию о рецепте",
             },
             {
                 "method": "POST",
                 "path": "/recipes",
-                "description": "Создать новый рецепт"
-            }
-        ]
+                "description": "Создать новый рецепт",
+            },
+        ],
     }
 
 
@@ -73,12 +70,10 @@ async def read_root() -> Dict[str, Any]:
     "/recipes",
     response_model=List[RecipeListResponse],
     summary="Получить список всех рецептов",
-    description="Получает список всех рецептов, отсортированный по популярности и времени приготовления."
+    description="Получает список всех рецептов, отсортированный по популярности и времени приготовления.",
 )
 async def get_all_recipes(
-        skip: int = 0,
-        limit: int = 100,
-        db: AsyncSession = Depends(get_db)
+    skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)
 ):
     """
     Получение списка всех рецептов.
@@ -111,12 +106,9 @@ async def get_all_recipes(
     "/recipes/{recipe_id}",
     response_model=RecipeDetailResponse,
     summary="Получить детальную информацию о рецепте",
-    description="Получает рецепт по ID и увеличивает счетчик просмотров."
+    description="Получает рецепт по ID и увеличивает счетчик просмотров.",
 )
-async def get_recipe_by_id(
-        recipe_id: int,
-        db: AsyncSession = Depends(get_db)
-):
+async def get_recipe_by_id(recipe_id: int, db: AsyncSession = Depends(get_db)):
     """
     Получение рецепта по ID.
 
@@ -130,6 +122,7 @@ async def get_recipe_by_id(
     Raises:
         HTTPException: 404 если рецепт не найден
     """
+
     # Ищем рецепт с ингредиентами
     query = (
         select(Recipe)
@@ -144,7 +137,7 @@ async def get_recipe_by_id(
     if not recipe:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Рецепт с ID {recipe_id} не найден"
+            detail=f"Рецепт с ID {recipe_id} не найден",
         )
 
     # Увеличиваем счетчик просмотров
@@ -162,12 +155,9 @@ async def get_recipe_by_id(
     response_model=RecipeDetailResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Создать новый рецепт",
-    description="Создает новый рецепт с ингредиентами."
+    description="Создает новый рецепт с ингредиентами.",
 )
-async def create_recipe(
-        recipe_data: RecipeCreate,
-        db: AsyncSession = Depends(get_db)
-):
+async def create_recipe(recipe_data: RecipeCreate, db: AsyncSession = Depends(get_db)):
     """
     Создание нового рецепта.
 
@@ -178,12 +168,13 @@ async def create_recipe(
     Returns:
         Информация о созданном рецепте
     """
+
     # Создаем объект рецепта
     new_recipe = Recipe(
         title=recipe_data.title,
         cooking_time=recipe_data.cooking_time,
         description=recipe_data.description,
-        views=0
+        views=0,
     )
 
     # Добавляем рецепт в базу
@@ -193,9 +184,7 @@ async def create_recipe(
     # Добавляем ингредиенты
     for ingredient in recipe_data.ingredients:
         new_ingredient = Ingredient(
-            name=ingredient.name,
-            quantity=ingredient.quantity,
-            recipe_id=new_recipe.id
+            name=ingredient.name, quantity=ingredient.quantity, recipe_id=new_recipe.id
         )
         db.add(new_ingredient)
 
@@ -218,7 +207,4 @@ if __name__ == "__main__":
     print("📚 Документация: http://localhost:8000/docs")
     print("📖 ReDoc: http://localhost:8000/redoc")
 
-    uvicorn.run(
-        app,
-        port=8000,
-    )
+    uvicorn.run(app, port=8000)
