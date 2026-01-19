@@ -1,6 +1,7 @@
 from pydantic import BaseModel, Field
 from typing import List
 
+
 class IngredientBase(BaseModel):
     name: str = Field(..., min_length=1, max_length=255, example="Мясо")
     quantity: str = Field(..., min_length=1, max_length=100, example="250 г")
@@ -20,7 +21,9 @@ class IngredientResponse(IngredientBase):
 class RecipeBase(BaseModel):
     title: str = Field(..., min_length=1, max_length=255, example="Борщ")
     cooking_time: int = Field(..., gt=0, example=60)
-    description: str = Field(..., min_length=10, example="Традиционный украинский суп...")
+    description: str = Field(
+        ..., min_length=10, example="Традиционный украинский суп..."
+    )
 
 
 class RecipeCreate(RecipeBase):
