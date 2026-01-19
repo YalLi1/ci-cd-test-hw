@@ -1,0 +1,8 @@
+[tool.black]
+line-length = 86
+target-version = ['py313']
+
+[tool.isort]
+profile = "black"
+line_length = 86
+multi_line_output = 3
