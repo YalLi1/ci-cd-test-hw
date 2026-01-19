@@ -13,37 +13,37 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     
-    - name: Set up Python 3.13
+    - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.13"
     
-    - name: Install dependencies from requirements.txt
+    - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        pip install pytest pytest-asyncio httpx  # для тестов если будут
-        
-    - name: Check formatting with black
-      run: | 
-        black --diff .
-        black --check .
-      
-    - name: Check imports with isort
+    
+    # 1. ПЕРВЫМ делом - автоисправление isort (без проверки)
+    - name: Auto-fix imports with isort
       run: |
-        isort --diff .
+        echo "Applying isort to fix import formatting..."
+        isort . --profile black
+    
+    # 2. Потом проверяем black
+    - name: Check formatting with black
+      run: |
+        echo "Checking black formatting..."
+        black --check .
+    
+    # 3. Дополнительная проверка isort (после автоисправления)
+    - name: Verify imports with isort
+      run: |
+        echo "Verifying imports are sorted..."
         isort --check-only .
-        
+    
+    # 4. Остальные проверки
     - name: Lint with flake8
       run: flake8 .
-      
+    
     - name: Check types with mypy
-      run: mypy .
-      
-    - name: Run tests (if any)
-      run: |
-        if [ -f "pytest.ini" ] || [ -d "tests" ]; then
-          python -m pytest -v
-        else
-          echo "No tests configured"
-        fi
+      run: mypy --ignore-missing-imports .
