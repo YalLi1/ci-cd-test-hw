@@ -1,0 +1,15 @@
+[tool.black]
+line-length = 88
+target-version = ['py313']
+include = '\.pyi?$'
+exclude = '''
+/(
+  \.git
+  | \.venv
+  | venv
+  | __pycache__
+  | \.pytest_cache
+)/
+'''
+# Ключевая настройка:
+skip-magic-trailing-comma = true
